@@ -4,17 +4,56 @@ var uiController = (function () {
     inputDescription: ".add__description",
     inputValue: ".add__value",
     addBtn: ".add__btn",
+    incomeList: ".income__list",
+    expenseList: ".expenses__list",
   };
   return {
     getInput: function () {
       return {
         type: document.querySelector(DOMstrings.inputType).value,
         description: document.querySelector(DOMstrings.inputDescription).value,
-        value: document.querySelector(DOMstrings.inputValue).value,
+        value: parseInt(document.querySelector(DOMstrings.inputValue).value),
       };
     },
     getDOMstrings: function () {
       return DOMstrings;
+    },
+
+    clearFields: function () {
+      var fielsd = document.querySelectorAll(
+        DOMstrings.inputDescription + "," + DOMstrings.inputValue
+      );
+      // conver list to array
+      var fieldsArr = Array.prototype.slice.call(fielsd);
+      fieldsArr.forEach(function (el, index, array) {
+        el.value = "";
+      });
+
+      fieldsArr[0].focus();
+      // for (var i = 0; i < fieldsArr.length; i++) {
+      //   fieldsArr[i].value = "";
+      // }
+    },
+
+    addListItem: function (item, type) {
+      // Орлого зарлагын элементийг агуулсан html-ийг бэлтэгнэ.
+      var html, list;
+      if (type === "inc") {
+        list = DOMstrings.incomeList;
+        html =
+          '<div class="item clearfix" id="inc-%id%"><div class="item__description">$$DESCRIPTION$$</div><div class="right clearfix"><div class="item__value">$$VALUE$$</div><div class="item__delete">            <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div>  </div></div>';
+      } else {
+        list = DOMstrings.expenseList;
+        html =
+          '<div class="item clearfix" id="exp-%id%"><div class="item__description">$$DESCRIPTION$$</div>          <div class="right clearfix"><div class="item__value">$$VALUE$$</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn">                <i class="ion-ios-close-outline"></i></button></div></div></div>';
+      }
+      // Тэр HTML дотроо ролого зарлагын утгуудыг Replace ашиглаж өөрчилж өгнө
+      html = html.replace("%id%", item.id);
+      html = html.replace("$$DESCRIPTION$$", item.description);
+      html = html.replace("$$VALUE$$", item.value);
+
+      // Бэлтэгсэн domruu hiinee
+      document.querySelector(list).insertAdjacentHTML("beforeend", html);
     },
   };
 })();
@@ -55,6 +94,10 @@ var financeController = (function () {
       }
 
       data.items[type].push(item);
+      return item;
+    },
+    seeData: function () {
+      return data;
     },
   };
 })();
@@ -62,14 +105,22 @@ var financeController = (function () {
 var appController = (function (uiController, financeController) {
   var ctrlAddItem = function () {
     var input = uiController.getInput();
-    // 1. Оруулах өгөгдөлийг дэлгэцээс олж авнаа.
-    financeController.addItem(input.type, input.description, input.value);
+    if (input.description !== "" && input.value !== "") {
+      // 1. Оруулах өгөгдөлийг дэлгэцээс олж авнаа.
+      var item = financeController.addItem(
+        input.type,
+        input.description,
+        input.value
+      );
 
-    // 2. Олж авсан өгөгдлүүдээ санхүүгийн контроллерт дамжуулж тэнд хадгална.
+      // 2. Олж авсан өгөгдлүүдээ санхүүгийн контроллерт дамжуулж тэнд хадгална.
 
-    // 3. Олж авсан өгөгдлүүдээ вэб дээрээ тохирхох хэсэгт байршуулна .
-    // 4. Төсвийг тооцоолно
-    // 5. Эцсийн үэлдэгдэл, тооцоог дэлгэцэнд гаргана.
+      // 3. Олж авсан өгөгдлүүдээ вэб дээрээ тохирхох хэсэгт байршуулна .
+      uiController.addListItem(item, input.type);
+      uiController.clearFields();
+      // 4. Төсвийг тооцоолно
+      // 5. Эцсийн үэлдэгдэл, тооцоог дэлгэцэнд гаргана.
+    }
   };
   var setupEventListeners = function () {
     var DOM = uiController.getDOMstrings();
